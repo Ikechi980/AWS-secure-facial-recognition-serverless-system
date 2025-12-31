@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Secure Facial Access</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <h1>Secure Facial Access</h1>
+        <p class="sub">Gate device verification</p>
+      </header>
+
+      <main class="card">
+        <div class="row">
+          <div class="col">
+            <label class="label" for="employeeId">Employee ID (testing)</label>
+            <input id="employeeId" class="input" placeholder="emp-0001" />
+          </div>
+
+          <div class="col right">
+            <label class="label">Debug mode</label>
+            <div class="toggle">
+              <input id="debugToggle" type="checkbox" />
+              <span>Show similarity</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label class="label">Input mode</label>
+            <div class="buttons">
+              <button id="useCameraBtn" class="btn secondary" type="button">Use camera</button>
+              <button id="useUploadBtn" class="btn secondary" type="button">Upload file</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="cameraSection" class="section hidden">
+          <video id="video" autoplay playsinline></video>
+
+          <div class="buttons">
+            <button id="startCameraBtn" class="btn" type="button">Start Camera</button>
+            <button id="captureBtn" class="btn" type="button">Capture Photo</button>
+            <button id="stopCameraBtn" class="btn secondary" type="button">Stop Camera</button>
+          </div>
+        </div>
+
+        <div id="uploadSection" class="section">
+          <label class="label" for="fileInput">Upload image</label>
+          <input id="fileInput" type="file" accept="image/*" />
+
+          <div class="buttons">
+            <button id="verifyUploadBtn" class="btn" type="button">Verify uploaded image</button>
+          </div>
+        </div>
+
+        <div class="statusRow">
+          <span id="statusPill" class="pill idle">Idle</span>
+          <span id="statusText" class="statusText">Ready</span>
+        </div>
+      </main>
+
+      <section class="result">
+        <div class="resultCard">
+          <h2>Result</h2>
+
+          <div id="banner" class="banner hidden">
+            <div id="bannerTitle" class="bannerTitle">Access</div>
+            <div id="bannerSubtitle" class="bannerSubtitle"></div>
+          </div>
+
+          <div class="resultGrid">
+            <div class="panel">
+              <h3>Captured / Uploaded image</h3>
+              <img id="previewImg" class="preview" alt="preview" />
+            </div>
+
+            <div class="panel">
+              <h3>Response</h3>
+              <pre id="responseBox" class="code">{}</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="./gate.js"></script>
+  </body>
+</html>

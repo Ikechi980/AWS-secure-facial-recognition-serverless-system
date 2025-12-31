@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Enrollment</title>
+</head>
+<body>
+
+<h1>Admin Enrollment Portal</h1>
+
+<button id="loginBtn">Sign in as Admin</button>
+<button id="logoutBtn">Sign out</button>
+
+<p id="status">Not signed in</p>
+
+<hr />
+
+<label>
+  Employee ID:
+  <input type="text" id="employeeId" />
+</label>
+
+<br /><br />
+
+<label>
+  Upload Employee Photo:
+  <input type="file" id="fileInput" accept="image/*" />
+</label>
+
+<br /><br />
+
+<button id="enrollBtn">Enroll Employee</button>
+
+<h3>Result</h3>
+<pre id="result"></pre>
+
+<script src="admin.js"></script>
+</body>
+</html>
