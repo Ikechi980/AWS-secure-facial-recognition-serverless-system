@@ -22,8 +22,6 @@ This project goes further and answers harder questions:
 - How do you prevent image uploads from becoming a security risk?
 - How do you audit every access attempt?
 
-This system is designed the way an actual enterprise access control product would be.
-
 ---
 
 ## High-Level Architecture
@@ -146,7 +144,7 @@ Both outcomes are logged for audit purposes.
 
 ## What This Project Demonstrates
 
-- Real-world AWS serverless architecture
+- AWS serverless architecture
 - Secure API design with multiple trust zones
 - Proper use of presigned S3 uploads
 - Facial recognition with Rekognition
@@ -156,13 +154,120 @@ Both outcomes are logged for audit purposes.
 
 ---
 
-## What I Would Do Next
+## 🔐 Security Design Decisions & Threat Model
 
-If this were going to production:
-- Add liveness detection
-- Introduce device identity and rate limiting
-- Expand audit queries and dashboards
-- Add alerting for suspicious access patterns
+This system was designed with security as a **primary requirement**, not something added later to make the demo look safe.
+
+The goal was to build a facial recognition access flow that mirrors how a real production access control system would be deployed in AWS, with clear trust boundaries and a minimal blast radius.
+
+---
+
+### Threats Considered
+
+The following risks were explicitly considered during design:
+
+- Unauthorized users uploading images directly to S3
+- Replay or reuse of previously captured facial images
+- Accidental public exposure of biometric data
+- Over-privileged Lambda or API Gateway roles
+- Enumeration of enrolled employees through API responses
+- Leakage of similarity or confidence scores
+- Direct or indirect exposure of AWS credentials to the client
+
+The architecture and permissions were shaped around reducing these risks rather than optimizing for convenience.
+
+---
+
+### Key Security Decisions
+
+#### 1. No Client AWS Credentials
+
+At no point does the frontend receive AWS credentials.
+
+- All uploads use short-lived presigned S3 URLs
+- URLs are scoped to a single object key and expire quickly
+- The client cannot list buckets, read objects, or reuse URLs
+
+This removes an entire class of credential leakage and abuse.
+
+---
+
+#### 2. Segmented APIs by Trust Level
+
+The system intentionally separates actions by trust level:
+
+- **Admin enrollment APIs** are protected by Amazon Cognito
+- **Gate verification APIs** are intentionally unauthenticated but tightly scoped
+- IAM permissions differ between enrollment, upload, and verification Lambdas
+
+This reflects a real environment where:
+- Admin actions require identity
+- Gate devices are treated as semi-trusted infrastructure
+- Compromise of one path does not grant lateral access
+
+---
+
+#### 3. Biometric Data Protection
+
+All facial images and derived data are treated as sensitive:
+
+- S3 buckets block all public access
+- Server-side encryption uses SSE-KMS with customer-managed keys
+- Rekognition collections are never exposed to the client
+- Images are accessed only by Lambda execution roles
+
+The frontend never directly interacts with stored biometric data.
+
+---
+
+#### 4. Minimal Response Exposure
+
+The verification API returns **only what the gate needs**:
+
+- Access Granted or Access Denied
+- No similarity scores by default
+- No face metadata
+- No internal Rekognition identifiers
+
+A debug mode exists for testing, but production behavior is intentionally opaque.  
+This mirrors how real access control systems operate.
+
+---
+
+#### 5. Auditability and Traceability
+
+Every verification attempt is logged:
+
+- Timestamped verification events
+- Object references
+- Match outcome
+- Environment and project context
+
+This enables post-incident review, behavioral analysis, and future alerting.
+
+---
+
+### Intentional Tradeoffs
+
+This project intentionally prioritizes:
+
+- Clear security boundaries over feature density
+- Stateless verification over persistent sessions
+- Least privilege over convenience
+- Explicit flows over hidden abstractions
+
+
+### Why This Matters
+
+This project is not meant to be a toy demo.
+
+It is designed to demonstrate:
+
+- How to structure serverless systems with real security boundaries
+- How to protect sensitive data using native AWS controls
+- How to design systems with attackers in mind, not just users
+
+Every major design choice assumes that **something will eventually fail**, and the system should fail safely.
 
 ---
 
