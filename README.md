@@ -278,3 +278,46 @@ It’s built to show **how I think about systems, security, and architecture**.
 
 That was the goal.
 
+---
+
+## Deployment & Testing (Terraform + Local UI)
+
+### Prerequisites
+- AWS account + credentials configured in your environment
+- Terraform `>= 1.6.0`
+- A globally unique S3 bucket name for `image_bucket_name`
+
+### Deploy (dev example)
+1. Update `terraform/dev.tfvars` with your values:
+   - `environment`, `admin_email`, `admin_name`, `image_bucket_name`
+2. If you change the bucket name, also update the hard-coded S3 ARNs in `terraform/iam.tf`
+   (they currently reference `facial-recogn-image-bucket`).
+3. Initialize Terraform (choose one):
+   - With remote state: `terraform -chdir=terraform init -backend-config=backend-dev.hcl`
+   - Local state: `terraform -chdir=terraform init`
+4. Apply: `terraform -chdir=terraform apply -var-file=dev.tfvars`
+5. Capture outputs: `terraform -chdir=terraform output`
+   - `api_base_url`, `cognito_user_pool_id`, `cognito_app_client_id`, `s3_bucket_name`
+6. Find the **Gate API** base URL in API Gateway (it is a separate API named
+   `${project_name}-${environment}-gate-api`), or add an output for
+   `aws_api_gateway_stage.gate_stage.invoke_url`.
+
+### Configure the UI
+1. Update `frontend/admin/admin.js`:
+   - `COGNITO_DOMAIN` (your user pool domain)
+   - `CLIENT_ID` (from `cognito_app_client_id`)
+   - `API_BASE` (from `api_base_url`)
+2. Update `frontend/gate/gate.js`:
+   - `API_BASE` (Gate API base URL)
+3. Cognito callback URLs in `terraform/cognito.tf` are set to
+   `http://localhost:3000/callback` and `http://localhost:3000/logout`.
+   The admin UI uses `/admin/` in `frontend/admin/admin.js`, so align these
+   (either change Cognito URLs or update `REDIRECT_URI`/logout URL).
+4. Serve the static UI: `python3 -m http.server 3000` from `frontend/`
+   - Admin: `http://localhost:3000/admin/`
+   - Gate: `http://localhost:3000/gate/`
+
+### Manual Test Flow
+1. Admin UI: log in → upload an employee image → enroll.
+2. Gate UI: upload or capture an image → verify.
+3. Check DynamoDB for audit records and CloudWatch logs for Lambda output.
